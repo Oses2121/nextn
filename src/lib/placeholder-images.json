@@ -71,6 +71,30 @@
       "description": "Set of colorful resistance bands.",
       "imageUrl": "https://images.unsplash.com/photo-1552226351-1ac7863af926?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxyZXNpc3RhbmNlJTIwYmFuZHN8ZW58MHx8fHwxNzY4NjY4NzM2fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "resistance bands"
+    },
+    {
+      "id": "product-9",
+      "description": "Bottle of organic coconut water",
+      "imageUrl": "https://images.unsplash.com/photo-1554522722-b38435105a16?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjb2NvbnV0JTIwd2F0ZXJ8ZW58MHx8fHwxNzE5NTk0MjQ3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "coconut water"
+    },
+    {
+      "id": "product-10",
+      "description": "High-density foam roller",
+      "imageUrl": "https://images.unsplash.com/photo-1590552515252-3a37f6402142?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxmb2FtJTIwcm9sbGVyfGVufDB8fHx8MTcxOTU5NDI5NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "foam roller"
+    },
+    {
+      "id": "product-11",
+      "description": "Container of collagen peptides powder",
+      "imageUrl": "https://images.unsplash.com/photo-1620573847683-75ed64c483a3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjb2xsYWdlbiUyMHBvd2RlcnxlbnwwfHx8fDE3MTk1OTQzMjZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "collagen powder"
+    },
+    {
+      "id": "product-12",
+      "description": "Natural bar soap with lavender",
+      "imageUrl": "https://images.unsplash.com/photo-1620917663999-929514e824a7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxiYXIlMjBzb2FwfGVufDB8fHx8MTcxOTU5NDM1OXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bar soap"
     }
   ]
 }
