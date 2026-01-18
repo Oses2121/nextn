@@ -1,6 +1,16 @@
 
 import type { Timestamp } from 'firebase/firestore';
 
+export interface ProductReview {
+  id: string; // Document ID from Firestore
+  userId: string;
+  userName: string;
+  productId: number;
+  rating: number;
+  comment: string;
+  createdAt: Timestamp;
+}
+
 // Represents a product item within an order
 export interface OrderItem {
   id: number;

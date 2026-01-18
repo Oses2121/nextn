@@ -112,6 +112,46 @@
         "items",
         "shippingInfo"
       ]
+    },
+    "ProductReview": {
+      "title": "Product Review",
+      "description": "Represents a user's review of a product.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who wrote the review."
+        },
+        "userName": {
+          "type": "string",
+          "description": "The display name of the user who wrote the review."
+        },
+        "productId": {
+          "type": "number",
+          "description": "The ID of the product being reviewed."
+        },
+        "rating": {
+          "type": "number",
+          "description": "The star rating given by the user (1-5)."
+        },
+        "comment": {
+          "type": "string",
+          "description": "The text content of the review."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the review was created."
+        }
+      },
+      "required": [
+        "userId",
+        "userName",
+        "productId",
+        "rating",
+        "comment",
+        "createdAt"
+      ]
     }
   },
   "auth": {
@@ -158,8 +198,24 @@
             }
           ]
         }
+      },
+      {
+        "path": "/reviews/{reviewId}",
+        "definition": {
+          "entityName": "ProductReview",
+          "schema": {
+            "$ref": "#/backend/entities/ProductReview"
+          },
+          "description": "Stores all product reviews. Can be read by anyone, but only created by authenticated users.",
+          "params": [
+            {
+              "name": "reviewId",
+              "description": "The unique identifier for the review."
+            }
+          ]
+        }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to be simple and secure. The primary collection is `/users`, where each document's ID is the Firebase Authentication UID of the user. This enforces a strict one-to-one relationship between an authentication identity and a user profile document, enabling strong, path-based security rules. All user-specific data that is not collaborative can be stored in sub-collections under the user's document, ensuring data isolation and straightforward ownership rules."
+    "reasoning": "The Firestore data structure is designed to be simple and secure. The primary collection is `/users`, where each document's ID is the Firebase Authentication UID of the user. This enforces a strict one-to-one relationship between an authentication identity and a user profile document, enabling strong, path-based security rules. All user-specific data that is not collaborative can be stored in sub-collections under the user's document, ensuring data isolation and straightforward ownership rules. Public data, like product reviews, is stored in a separate top-level collection with its own security rules."
   }
 }

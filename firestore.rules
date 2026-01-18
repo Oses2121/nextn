@@ -85,5 +85,19 @@ service cloud.firestore {
         allow update, delete: if false; // Orders are immutable to maintain integrity
       }
     }
+
+    /**
+     * @description Secures product reviews.
+     * @path        /reviews/{reviewId}
+     * @allow       (list, get) Anyone can read reviews to display them on product pages.
+     * @allow       (create) Any authenticated user can create a new review.
+     * @allow       (update, delete) Only the original author of the review can modify or delete it.
+     * @principle   Enables public feedback while maintaining user ownership of content.
+     */
+    match /reviews/{reviewId} {
+      allow get, list: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isOwner(resource.data.userId);
+    }
   }
 }
