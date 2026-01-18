@@ -24,6 +24,13 @@
           "type": "string",
           "format": "uri",
           "description": "URL of the user's profile picture."
+        },
+        "wishlist": {
+          "type": "array",
+          "description": "An array of product IDs the user has wishlisted.",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [

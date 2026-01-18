@@ -3,7 +3,7 @@
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Star, Minus, Plus, ShoppingCart } from "lucide-react";
+import { Star, Minus, Plus, ShoppingCart, Heart } from "lucide-react";
 import { ProductCard } from "@/components/product-card";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/context/cart-context";
@@ -19,6 +19,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useWishlist } from "@/context/wishlist-context";
+import { cn } from "@/lib/utils";
 
 
 function ReviewCard({ review }: { review: ProductReview }) {
@@ -86,6 +88,7 @@ export default function ProductDetailPage({
   params: { id: string };
 }) {
   const { addToCart } = useCart();
+  const { isProductInWishlist, toggleProductInWishlist } = useWishlist();
   const [quantity, setQuantity] = useState(1);
   const { user } = useUser();
   const firestore = useFirestore();
@@ -132,6 +135,7 @@ export default function ProductDetailPage({
     ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviewCount
     : 0;
 
+  const isWishlisted = product ? isProductInWishlist(product.id) : false;
 
   const productImage = product ? PlaceHolderImages.find((img) => img.id === product.imageId) : null;
 
@@ -217,6 +221,10 @@ export default function ProductDetailPage({
                 <Button size="lg" className="flex-1" onClick={handleAddToCart}>
                     <ShoppingCart className="mr-2 h-5 w-5"/>
                     Add to Cart
+                </Button>
+                <Button variant="outline" size="icon" className="h-11 w-11" onClick={() => product && toggleProductInWishlist(product.id, product.name)}>
+                    <Heart className={cn("h-5 w-5", isWishlisted && "text-destructive fill-current")} />
+                    <span className="sr-only">Add to wishlist</span>
                 </Button>
             </div>
             </div>

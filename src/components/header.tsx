@@ -6,6 +6,7 @@ import {
   Menu,
   Search,
   ShoppingCart,
+  Heart,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -63,7 +64,7 @@ export function Header() {
             </Link>
           ))}
         </nav>
-        <div className="flex flex-1 items-center justify-end gap-4">
+        <div className="flex flex-1 items-center justify-end gap-2 sm:gap-4">
           <form onSubmit={handleSearch} className="relative hidden sm:block w-full max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
@@ -73,6 +74,12 @@ export function Header() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </form>
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/wishlist">
+              <Heart className="h-5 w-5" />
+              <span className="sr-only">Wishlist</span>
+            </Link>
+          </Button>
           <Button variant="ghost" size="icon" asChild>
             <Link href="/cart" className="relative">
               <ShoppingCart className="h-5 w-5" />

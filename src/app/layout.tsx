@@ -9,6 +9,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { FirebaseClientProvider } from "@/firebase";
 import { CartProvider } from "@/context/cart-context";
+import { WishlistProvider } from "@/context/wishlist-context";
 
 export const metadata: Metadata = {
   title: "Verdure - Organic & Fitness Shop",
@@ -44,10 +45,12 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <CartProvider>
-              <Header />
-              <main>{children}</main>
-              <Footer />
-              <Toaster />
+              <WishlistProvider>
+                <Header />
+                <main>{children}</main>
+                <Footer />
+                <Toaster />
+              </WishlistProvider>
             </CartProvider>
           </ThemeProvider>
         </FirebaseClientProvider>
