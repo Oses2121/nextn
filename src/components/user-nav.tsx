@@ -15,6 +15,7 @@ import { useAuth, useUser } from "@/firebase";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export function UserNav() {
   const { user } = useUser();
@@ -38,7 +39,7 @@ export function UserNav() {
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
             <AvatarImage src={user.photoURL || userAvatar?.imageUrl || ""} alt={user.displayName || "User"} />
-            <AvatarFallback>{user.displayName?.[0] || user.email?.[0]}</AvatarFallback>
+            <AvatarFallback>{(user.displayName?.[0] || user.email?.[0])?.toUpperCase()}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
@@ -53,8 +54,8 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            Profile
+          <DropdownMenuItem asChild>
+            <Link href="/profile">Profile</Link>
           </DropdownMenuItem>
           <DropdownMenuItem>
             Billing

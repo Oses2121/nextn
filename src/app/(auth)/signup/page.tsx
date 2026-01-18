@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useAuth } from "@/firebase";
+import { useAuth, useFirestore } from "@/firebase";
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
@@ -21,6 +21,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { upsertUserProfile } from "@/lib/user-actions";
 
 const GoogleIcon = () => (
   <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -33,6 +34,7 @@ const GoogleIcon = () => (
 
 export default function SignupPage() {
   const auth = useAuth();
+  const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
@@ -41,7 +43,8 @@ export default function SignupPage() {
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      upsertUserProfile(firestore, result.user);
       router.push("/");
     } catch (error: any) {
       toast({
@@ -55,7 +58,8 @@ export default function SignupPage() {
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const result = await createUserWithEmailAndPassword(auth, email, password);
+      upsertUserProfile(firestore, result.user);
       router.push("/");
     } catch (error: any) {
       toast({
