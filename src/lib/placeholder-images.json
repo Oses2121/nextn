@@ -3,8 +3,74 @@
     {
       "id": "user-avatar",
       "description": "User avatar",
-      "imageUrl": "https://images.unsplash.com/photo-1630910561339-4e22c7150093?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwZXJzb24lMjBhdmF0YXJ8ZW58MHx8fHwxNzY4NTcwNzcyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1569913486515-b74bf7751574?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxwZXJzb24lMjBhdmF0YXJ8ZW58MHx8fHwxNzY4Njk3NTcwfDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person avatar"
+    },
+    {
+      "id": "hero-1",
+      "description": "Fresh organic vegetables on a wooden table.",
+      "imageUrl": "https://images.unsplash.com/photo-1562437243-4117943e59b8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxvcmdhbmljJTIwdmVnZXRhYmxlc3xlbnwwfHx8fDE3Njg2OTc1Njl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "organic vegetables"
+    },
+    {
+      "id": "hero-2",
+      "description": "Person working out in a gym.",
+      "imageUrl": "https://images.unsplash.com/photo-1522845015757-50bce044e5da?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxmaXRuZXNzJTIwd29ya291dHxlbnwwfHx8fDE3Njg2MjY5MDh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "fitness workout"
+    },
+    {
+      "id": "hero-3",
+      "description": "Assortment of natural health supplements.",
+      "imageUrl": "https://images.unsplash.com/photo-1664956618021-73c47736845e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxoZWFsdGglMjBzdXBwbGVtZW50c3xlbnwwfHx8fDE3Njg2MDA5NjF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "health supplements"
+    },
+    {
+      "id": "product-1",
+      "description": "Bunch of organic kale.",
+      "imageUrl": "https://images.unsplash.com/photo-1762949673017-137a23176380?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxvcmdhbmljJTIwa2FsZXxlbnwwfHx8fDE3Njg2OTc1NzB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "organic kale"
+    },
+    {
+      "id": "product-2",
+      "description": "Rolled up yoga mat.",
+      "imageUrl": "https://images.unsplash.com/photo-1718862403436-616232ec6005?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx5b2dhJTIwbWF0fGVufDB8fHx8MTc2ODY0OTAxMnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "yoga mat"
+    },
+    {
+      "id": "product-3",
+      "description": "Container of plant-based protein powder.",
+      "imageUrl": "https://images.unsplash.com/photo-1633509817627-5a29634475af?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxwcm90ZWluJTIwcG93ZGVyfGVufDB8fHx8MTc2ODY2MDQ1M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "protein powder"
+    },
+    {
+      "id": "product-4",
+      "description": "Bowl of uncooked organic quinoa.",
+      "imageUrl": "https://images.unsplash.com/photo-1618510355097-77b432ca8436?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxvcmdhbmljJTIwcXVpbm9hfGVufDB8fHx8MTc2ODY5NzU3MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "organic quinoa"
+    },
+    {
+      "id": "product-5",
+      "description": "Set of dumbbells on a rack.",
+      "imageUrl": "https://picsum.photos/seed/p5/600/600",
+      "imageHint": "dumbbell set"
+    },
+    {
+      "id": "product-6",
+      "description": "Bottle of Vitamin D3 gummies.",
+      "imageUrl": "https://images.unsplash.com/photo-1668440241140-1af5bce424c4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8dml0YW1pbiUyMGd1bW1pZXN8ZW58MHx8fHwxNzY4Njk3NTcwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "vitamin gummies"
+    },
+    {
+      "id": "product-7",
+      "description": "Bottle of organic avocado oil.",
+      "imageUrl": "https://images.unsplash.com/photo-1687102645918-54be57b1481c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxhdm9jYWRvJTIwb2lsfGVufDB8fHx8MTc2ODY5NzU3MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "avocado oil"
+    },
+    {
+      "id": "product-8",
+      "description": "Set of colorful resistance bands.",
+      "imageUrl": "https://images.unsplash.com/photo-1552226351-1ac7863af926?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxyZXNpc3RhbmNlJTIwYmFuZHN8ZW58MHx8fHwxNzY4NjY4NzM2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "resistance bands"
     }
   ]
 }
