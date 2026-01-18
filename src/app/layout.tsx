@@ -8,6 +8,7 @@ import { Footer } from "@/components/footer";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { FirebaseClientProvider } from "@/firebase";
+import { CartProvider } from "@/context/cart-context";
 
 export const metadata: Metadata = {
   title: "Verdure - Organic & Fitness Shop",
@@ -42,10 +43,12 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <Header />
-            <main>{children}</main>
-            <Footer />
-            <Toaster />
+            <CartProvider>
+              <Header />
+              <main>{children}</main>
+              <Footer />
+              <Toaster />
+            </CartProvider>
           </ThemeProvider>
         </FirebaseClientProvider>
       </body>

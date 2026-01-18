@@ -1,3 +1,5 @@
+'use client';
+
 import { products } from "@/lib/data";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
@@ -5,19 +7,33 @@ import { Button } from "@/components/ui/button";
 import { Star, Minus, Plus, ShoppingCart } from "lucide-react";
 import { ProductCard } from "@/components/product-card";
 import { Separator } from "@/components/ui/separator";
+import { useCart } from "@/context/cart-context";
+import { useState } from "react";
+import { notFound } from "next/navigation";
 
 export default function ProductDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
+  const { addToCart } = useCart();
+  const [quantity, setQuantity] = useState(1);
+
   const product = products.find((p) => p.id === parseInt(params.id));
+  
   if (!product) {
-    return <div>Product not found</div>;
+    notFound();
   }
 
   const productImage = PlaceHolderImages.find((img) => img.id === product.imageId);
   const relatedProducts = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 3);
+
+  const handleAddToCart = () => {
+    addToCart(product, quantity);
+  };
+
+  const increaseQuantity = () => setQuantity(prev => prev + 1);
+  const decreaseQuantity = () => setQuantity(prev => Math.max(1, prev - 1));
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -51,11 +67,11 @@ export default function ProductDetailPage({
           
           <div className="flex items-center gap-4">
             <div className="flex items-center border rounded-md">
-                <Button variant="ghost" size="icon"><Minus className="h-4 w-4"/></Button>
-                <span className="w-12 text-center">1</span>
-                <Button variant="ghost" size="icon"><Plus className="h-4 w-4"/></Button>
+                <Button variant="ghost" size="icon" onClick={decreaseQuantity}><Minus className="h-4 w-4"/></Button>
+                <span className="w-12 text-center">{quantity}</span>
+                <Button variant="ghost" size="icon" onClick={increaseQuantity}><Plus className="h-4 w-4"/></Button>
             </div>
-            <Button size="lg" className="flex-1">
+            <Button size="lg" className="flex-1" onClick={handleAddToCart}>
                 <ShoppingCart className="mr-2 h-5 w-5"/>
                 Add to Cart
             </Button>

@@ -15,6 +15,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useUser } from "@/firebase";
 import { UserNav } from "./user-nav";
 import { Skeleton } from "./ui/skeleton";
+import { useCart } from "@/context/cart-context";
+import { Badge } from "./ui/badge";
 
 const navLinks = [
   { href: "/products", label: "All Products" },
@@ -26,6 +28,7 @@ const navLinks = [
 export function Header() {
   const isMobile = useIsMobile();
   const { user, isUserLoading } = useUser();
+  const { cartCount } = useCart();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -54,8 +57,11 @@ export function Header() {
             <Input placeholder="Search products..." className="pl-10" />
           </div>
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/cart">
+            <Link href="/cart" className="relative">
               <ShoppingCart className="h-5 w-5" />
+              {cartCount > 0 && (
+                <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 justify-center p-0">{cartCount}</Badge>
+              )}
               <span className="sr-only">Shopping Cart</span>
             </Link>
           </Button>
