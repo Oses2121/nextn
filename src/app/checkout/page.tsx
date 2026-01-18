@@ -23,7 +23,8 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { useUser, useFirestore } from "@/firebase";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { runTransaction, doc, collection, serverTimestamp } from "firebase/firestore";
+import type { Product } from "@/lib/types";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -76,15 +77,54 @@ export default function CheckoutPage() {
     const { cardNumber, expiryDate, cvc, ...shippingInfo } = values;
 
     try {
-        const ordersCollectionRef = collection(firestore, `users/${user.uid}/orders`);
-        await addDoc(ordersCollectionRef, {
-            userId: user.uid,
-            createdAt: serverTimestamp(),
-            total: total,
-            items: cartItems,
-            shippingInfo: shippingInfo,
-        });
+        await runTransaction(firestore, async (transaction) => {
+            const stockIssues: string[] = [];
 
+            // 1. Read all product stocks first
+            const productRefs = cartItems.map(item => doc(firestore, 'products', item.id));
+            const productSnapshots = await Promise.all(productRefs.map(ref => transaction.get(ref)));
+
+            // 2. Validate stock for all items
+            for (let i = 0; i < cartItems.length; i++) {
+                const item = cartItems[i];
+                const productSnap = productSnapshots[i];
+
+                if (!productSnap.exists()) {
+                    throw new Error(`Product ${item.name} not found.`);
+                }
+
+                const currentStock = productSnap.data().stock;
+                if (currentStock < item.quantity) {
+                    stockIssues.push(`${item.name} (only ${currentStock} left)`);
+                }
+            }
+
+            if (stockIssues.length > 0) {
+                // This error will be caught by the outer catch block
+                throw new Error(`Some items are out of stock: ${stockIssues.join(', ')}`);
+            }
+
+            // 3. If all stocks are fine, update them
+            for (let i = 0; i < cartItems.length; i++) {
+                const item = cartItems[i];
+                const productRef = productRefs[i];
+                const currentStock = productSnapshots[i].data()!.stock;
+                const newStock = currentStock - item.quantity;
+                transaction.update(productRef, { stock: newStock });
+            }
+
+            // 4. Create the new order
+            const orderRef = doc(collection(firestore, `users/${user.uid}/orders`));
+            transaction.set(orderRef, {
+                userId: user.uid,
+                createdAt: serverTimestamp(),
+                total: total,
+                items: cartItems,
+                shippingInfo: shippingInfo,
+            });
+        });
+        
+        // If transaction is successful
         toast({
             title: "Order Placed!",
             description: "Thank you for your purchase.",
@@ -92,12 +132,12 @@ export default function CheckoutPage() {
         clearCart();
         router.push("/orders");
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error placing order: ", error);
         toast({
             variant: "destructive",
             title: "Order Failed",
-            description: "There was a problem placing your order. Please try again.",
+            description: error.message || "There was a problem placing your order. Please try again.",
         });
     }
   }
