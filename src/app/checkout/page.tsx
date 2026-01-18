@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -13,7 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/context/cart-context";
 import { useRouter } from "next/navigation";
@@ -21,6 +22,8 @@ import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
+import { useUser, useFirestore } from "@/firebase";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -38,13 +41,15 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { cartItems, totalPrice, clearCart } = useCart();
+  const { user } = useUser();
+  const firestore = useFirestore();
   const tax = totalPrice * 0.08;
   const total = totalPrice + tax;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
+      email: user?.email || "",
       firstName: "",
       lastName: "",
       address: "",
@@ -56,19 +61,48 @@ export default function CheckoutPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    toast({
-      title: "Order Placed!",
-      description: "Thank you for your purchase.",
-    });
-    clearCart();
-    router.push("/");
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!user || !firestore) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Error",
+        description: "You must be logged in to place an order.",
+      });
+      router.push('/login');
+      return;
+    }
+
+    // Exclude payment details from being saved
+    const { cardNumber, expiryDate, cvc, ...shippingInfo } = values;
+
+    try {
+        const ordersCollectionRef = collection(firestore, `users/${user.uid}/orders`);
+        await addDoc(ordersCollectionRef, {
+            userId: user.uid,
+            createdAt: serverTimestamp(),
+            total: total,
+            items: cartItems,
+            shippingInfo: shippingInfo,
+        });
+
+        toast({
+            title: "Order Placed!",
+            description: "Thank you for your purchase.",
+        });
+        clearCart();
+        router.push("/orders");
+
+    } catch (error) {
+        console.error("Error placing order: ", error);
+        toast({
+            variant: "destructive",
+            title: "Order Failed",
+            description: "There was a problem placing your order. Please try again.",
+        });
+    }
   }
 
   if (cartItems.length === 0) {
-    // This is to prevent users from accessing checkout with an empty cart
-    // Ideally this would be a redirect in a useEffect, but for simplicity:
      return (
         <div className="container mx-auto px-4 py-8 text-center">
             <h1 className="text-2xl font-bold">Your cart is empty.</h1>
@@ -172,15 +206,21 @@ export default function CheckoutPage() {
                           )} />
                       </div>
                   </div>
-                  <Button type="submit" size="lg" className="w-full">
-                    Place Order (${total.toFixed(2)})
-                  </Button>
+                  {user ? (
+                    <Button type="submit" size="lg" className="w-full" disabled={!form.formState.isValid}>
+                        Place Order (${total.toFixed(2)})
+                    </Button>
+                  ) : (
+                    <Button size="lg" className="w-full" asChild>
+                        <Link href="/login?redirect=/checkout">Login to Place Order</Link>
+                    </Button>
+                  )}
                 </form>
               </Form>
             </CardContent>
           </Card>
         </div>
-        <div className="md:col-span-1">
+        <div className="md:col-span-1 sticky top-24">
           <Card>
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>

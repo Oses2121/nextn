@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -25,7 +26,92 @@
           "description": "URL of the user's profile picture."
         }
       },
-      "required": ["uid", "email"]
+      "required": [
+        "uid",
+        "email"
+      ]
+    },
+    "OrderItem": {
+      "title": "Order Item",
+      "description": "Represents a single product within an order.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number"
+        },
+        "name": {
+          "type": "string"
+        },
+        "price": {
+          "type": "number"
+        },
+        "quantity": {
+          "type": "number"
+        },
+        "imageId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "price",
+        "quantity"
+      ]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Represents a customer's order.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "total": {
+          "type": "number"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/backend/entities/OrderItem"
+          }
+        },
+        "shippingInfo": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "firstName": {
+              "type": "string"
+            },
+            "lastName": {
+              "type": "string"
+            },
+            "address": {
+              "type": "string"
+            },
+            "city": {
+              "type": "string"
+            },
+            "zip": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "required": [
+        "userId",
+        "createdAt",
+        "total",
+        "items",
+        "shippingInfo"
+      ]
     }
   },
   "auth": {
@@ -49,6 +135,26 @@
             {
               "name": "userId",
               "description": "The unique identifier of the user, matching their Auth UID."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/orders/{orderId}",
+        "definition": {
+          "entityName": "Order",
+          "schema": {
+            "$ref": "#/backend/entities/Order"
+          },
+          "description": "Stores the orders placed by a user.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The UID of the user."
+            },
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the order."
             }
           ]
         }
