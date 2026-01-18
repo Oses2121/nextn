@@ -24,42 +24,50 @@ export default function ProductsPage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState<string>('featured');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 200]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Initialize filters from URL search params
   useEffect(() => {
-    const categoryFilter = searchParams.get('category');
-    if (categoryFilter) {
-      setSelectedCategories([categoryFilter]);
-    }
+    const categoryParams = searchParams.getAll('category');
+    setSelectedCategories(categoryParams);
+    
+    const queryParam = searchParams.get('q');
+    setSearchQuery(queryParam || '');
   }, [searchParams]);
 
   const handleCategoryChange = (categorySlug: string) => {
-    setSelectedCategories((prev) => {
-      const newCategories = prev.includes(categorySlug)
-        ? prev.filter((slug) => slug !== categorySlug)
-        : [...prev, categorySlug];
+    const newCategories = selectedCategories.includes(categorySlug)
+        ? selectedCategories.filter((slug) => slug !== categorySlug)
+        : [...selectedCategories, categorySlug];
+    
+    setSelectedCategories(newCategories);
 
-      // Update URL - for simplicity, this demo only syncs the first category to the URL
-      const params = new URLSearchParams(searchParams);
-      if (newCategories.length > 0) {
-        params.set('category', newCategories[0]);
-      } else {
-        params.delete('category');
-      }
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-
-      return newCategories;
-    });
+    // Update URL
+    const params = new URLSearchParams(searchParams);
+    params.delete('category');
+    newCategories.forEach(cat => params.append('category', cat));
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   const clearFilters = () => {
     setSelectedCategories([]);
     setPriceRange([0, 200]);
-    router.replace(pathname, { scroll: false });
+    
+    const params = new URLSearchParams(searchParams);
+    params.delete('category');
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   const filteredAndSortedProducts = useMemo(() => {
     let filtered = products;
+
+    // Filter by search query
+    if (searchQuery) {
+        filtered = filtered.filter(p => 
+            p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.description.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }
 
     // Filter by category
     if (selectedCategories.length > 0) {
@@ -87,12 +95,23 @@ export default function ProductsPage() {
       default:
         return filtered;
     }
-  }, [selectedCategories, sortOrder, priceRange]);
+  }, [selectedCategories, sortOrder, priceRange, searchQuery]);
+  
+  const getCategoryName = (slug: string) => categories.find(c => c.slug === slug)?.name;
 
-  const currentCategoryName =
-    selectedCategories.length === 1
-      ? categories.find((c) => c.slug === selectedCategories[0])?.name
-      : 'All Products';
+  const pageTitle = useMemo(() => {
+    if (searchQuery) {
+        return `Results for "${searchQuery}"`;
+    }
+    if (selectedCategories.length === 1) {
+        return getCategoryName(selectedCategories[0]) || 'Products';
+    }
+    if (selectedCategories.length > 1) {
+        return 'Filtered Products';
+    }
+    return 'All Products';
+  }, [searchQuery, selectedCategories]);
+
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -138,22 +157,24 @@ export default function ProductsPage() {
                 <span>${priceRange[1]}</span>
               </div>
             </div>
-            <div>
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={clearFilters}
-              >
-                Clear All Filters
-              </Button>
-            </div>
+            {(selectedCategories.length > 0 || priceRange[0] > 0 || priceRange[1] < 200) && (
+              <div>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={clearFilters}
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            )}
           </div>
         </aside>
 
         <main className="w-full md:w-3/4 lg:w-4/5">
           <div className="flex flex-wrap gap-4 justify-between items-center mb-6">
             <h1 className="text-3xl font-bold tracking-tight">
-              {currentCategoryName}
+              {pageTitle}
             </h1>
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground">
@@ -183,7 +204,7 @@ export default function ProductsPage() {
             <div className="text-center py-16 border-2 border-dashed rounded-lg">
               <h2 className="text-2xl font-semibold">No Products Found</h2>
               <p className="text-muted-foreground mt-2">
-                Try adjusting your filters to find what you're looking for.
+                Try adjusting your filters or searching for something else.
               </p>
             </div>
           )}

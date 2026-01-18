@@ -17,6 +17,8 @@ import { UserNav } from "./user-nav";
 import { Skeleton } from "./ui/skeleton";
 import { useCart } from "@/context/cart-context";
 import { Badge } from "./ui/badge";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const navLinks = [
   { href: "/products", label: "All Products" },
@@ -29,6 +31,16 @@ export function Header() {
   const isMobile = useIsMobile();
   const { user, isUserLoading } = useUser();
   const { cartCount } = useCart();
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    router.push(`/products?q=${encodeURIComponent(searchQuery.trim())}`);
+    setSearchQuery(""); 
+  };
+
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -52,10 +64,15 @@ export function Header() {
           ))}
         </nav>
         <div className="flex flex-1 items-center justify-end gap-4">
-          <div className="relative hidden sm:block w-full max-w-xs">
+          <form onSubmit={handleSearch} className="relative hidden sm:block w-full max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search products..." className="pl-10" />
-          </div>
+            <Input 
+              placeholder="Search products..." 
+              className="pl-10" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </form>
           <Button variant="ghost" size="icon" asChild>
             <Link href="/cart" className="relative">
               <ShoppingCart className="h-5 w-5" />
