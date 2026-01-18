@@ -4,7 +4,7 @@
  * isolated and accessible only by its creator.
  *
  * Data Structure: The entire data model is hierarchical, with all user-specific
- * collections (revenues, expenses, appointments) nested under a parent
+ * collections nested under a parent
  * `/users/{userId}` path. This structure makes ownership unambiguous and enables
  * efficient, secure queries.
  *
@@ -68,54 +68,6 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Secures a user's private revenue transactions.
-     * @path        /users/{userId}/revenues/{revenueId}
-     * @allow       (create) A user `auth.uid: "user_abc"` can create a new revenue document at `/users/user_abc/revenues/rev_123`.
-     * @allow       (list) A user `auth.uid: "user_abc"` can list all documents in their own `/users/user_abc/revenues` collection.
-     * @deny        (get) A user `auth.uid: "user_xyz"` cannot read a document at `/users/user_abc/revenues/rev_123`.
-     * @principle   Restricts all access to a user's own data tree using path-based ownership.
-     */
-    match /users/{userId}/revenues/{revenueId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Secures a user's private expense transactions.
-     * @path        /users/{userId}/expenses/{expenseId}
-     * @allow       (create) A user `auth.uid: "user_abc"` can create a new expense document at `/users/user_abc/expenses/exp_123`.
-     * @allow       (list) A user `auth.uid: "user_abc"` can list all documents in their own `/users/user_abc/expenses` collection.
-     * @deny        (get) A user `auth.uid: "user_xyz"` cannot read a document at `/users/user_abc/expenses/exp_123`.
-     * @principle   Restricts all access to a user's own data tree using path-based ownership.
-     */
-    match /users/{userId}/expenses/{expenseId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Secures a user's private appointments.
-     * @path        /users/{userId}/appointments/{appointmentId}
-     * @allow       (create) A user `auth.uid: "user_abc"` can create a new appointment at `/users/user_abc/appointments/appt_123`.
-     * @allow       (list) A user `auth.uid: "user_abc"` can list all documents in their own `/users/user_abc/appointments` collection.
-     * @deny        (get) A user `auth.uid: "user_xyz"` cannot read a document at `/users/user_abc/appointments/appt_123`.
-     * @principle   Restricts all access to a user's own data tree using path-based ownership.
-     */
-    match /users/{userId}/appointments/{appointmentId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
       allow create: if isOwner(userId);
       allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);

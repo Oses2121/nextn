@@ -1,183 +1,59 @@
 {
   "entities": {
-    "Revenue": {
+    "UserProfile": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Revenue",
+      "title": "User Profile",
       "type": "object",
-      "description": "Represents a revenue transaction.",
+      "description": "Represents a user's profile information.",
       "properties": {
-        "id": {
+        "uid": {
           "type": "string",
-          "description": "Unique identifier for the revenue transaction."
+          "description": "The user's unique ID from Firebase Authentication."
         },
-        "source": {
+        "displayName": {
           "type": "string",
-          "description": "The source of the revenue (e.g., customer name, service provided)."
+          "description": "The user's display name."
         },
-        "date": {
+        "email": {
           "type": "string",
-          "description": "The date of the revenue transaction.",
-          "format": "date-time"
+          "format": "email",
+          "description": "The user's email address."
         },
-        "amount": {
-          "type": "number",
-          "description": "The amount of the revenue transaction."
-        },
-        "category": {
+        "photoURL": {
           "type": "string",
-          "description": "The category of the revenue (e.g., sales, services)."
+          "format": "uri",
+          "description": "URL of the user's profile picture."
         }
       },
-      "required": [
-        "id",
-        "source",
-        "date",
-        "amount",
-        "category"
-      ]
-    },
-    "Expense": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Expense",
-      "type": "object",
-      "description": "Represents an expense transaction.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the expense transaction."
-        },
-        "vendor": {
-          "type": "string",
-          "description": "The vendor or supplier for the expense."
-        },
-        "date": {
-          "type": "string",
-          "description": "The date of the expense transaction.",
-          "format": "date-time"
-        },
-        "amount": {
-          "type": "number",
-          "description": "The amount of the expense transaction."
-        },
-        "category": {
-          "type": "string",
-          "description": "The category of the expense (e.g., rent, utilities)."
-        }
-      },
-      "required": [
-        "id",
-        "vendor",
-        "date",
-        "amount",
-        "category"
-      ]
-    },
-    "Appointment": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Appointment",
-      "type": "object",
-      "description": "Represents a scheduled appointment.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the appointment."
-        },
-        "title": {
-          "type": "string",
-          "description": "The title or subject of the appointment."
-        },
-        "startTime": {
-          "type": "string",
-          "description": "The start date and time of the appointment.",
-          "format": "date-time"
-        },
-        "endTime": {
-          "type": "string",
-          "description": "The end date and time of the appointment.",
-          "format": "date-time"
-        },
-        "description": {
-          "type": "string",
-          "description": "A description or notes about the appointment."
-        }
-      },
-      "required": [
-        "id",
-        "title",
-        "startTime",
-        "endTime"
-      ]
+      "required": ["uid", "email"]
     }
   },
   "auth": {
     "providers": [
       "password",
-      "anonymous"
+      "anonymous",
+      "google.com"
     ]
   },
   "firestore": {
     "structure": [
       {
-        "path": "/users/{userId}/revenues/{revenueId}",
+        "path": "/users/{userId}",
         "definition": {
-          "entityName": "Revenue",
+          "entityName": "UserProfile",
           "schema": {
-            "$ref": "#/backend/entities/Revenue"
+            "$ref": "#/backend/entities/UserProfile"
           },
-          "description": "Stores revenue transactions for a specific user. Uses path-based ownership for security. All revenues under a user id is owned by the user.",
+          "description": "Stores public user profile information. The document ID must match the user's Firebase Auth UID.",
           "params": [
             {
               "name": "userId",
-              "description": "The unique identifier of the user."
-            },
-            {
-              "name": "revenueId",
-              "description": "The unique identifier of the revenue transaction."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/expenses/{expenseId}",
-        "definition": {
-          "entityName": "Expense",
-          "schema": {
-            "$ref": "#/backend/entities/Expense"
-          },
-          "description": "Stores expense transactions for a specific user. Uses path-based ownership for security. All expenses under a user id is owned by the user.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user."
-            },
-            {
-              "name": "expenseId",
-              "description": "The unique identifier of the expense transaction."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/appointments/{appointmentId}",
-        "definition": {
-          "entityName": "Appointment",
-          "schema": {
-            "$ref": "#/backend/entities/Appointment"
-          },
-          "description": "Stores appointments for a specific user. Uses path-based ownership for security. All appointments under a user id is owned by the user.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user."
-            },
-            {
-              "name": "appointmentId",
-              "description": "The unique identifier of the appointment."
+              "description": "The unique identifier of the user, matching their Auth UID."
             }
           ]
         }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to provide a secure and scalable solution for the BizSight application, focusing on authorization independence and clear data segregation. The structure leverages path-based ownership for user-specific data, enabling straightforward security rules and efficient data retrieval. Each user's data (revenues, expenses, and appointments) are stored under their respective user ID, ensuring data isolation and simplified access control. Revenue and expense are kept under the `user/{userid}` root, and appointments are stored under `appointments/{userid}`. This segregation enables secure list operations (QAPs) as rules only need to validate `request.auth.uid` against the wildcard `{userId}`. This design eliminates the need for complex `get()` calls in security rules, fostering authorization independence and simplifying debugging. The absence of a collaborative requirement removes the necessity for membership maps, further simplifying the structure and enhancing security."
+    "reasoning": "The Firestore data structure is designed to be simple and secure. The primary collection is `/users`, where each document's ID is the Firebase Authentication UID of the user. This enforces a strict one-to-one relationship between an authentication identity and a user profile document, enabling strong, path-based security rules. All user-specific data that is not collaborative can be stored in sub-collections under the user's document, ensuring data isolation and straightforward ownership rules."
   }
 }

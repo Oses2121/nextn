@@ -12,6 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useUser } from "@/firebase";
+import { UserNav } from "./user-nav";
+import { Skeleton } from "./ui/skeleton";
 
 const navLinks = [
   { href: "/products", label: "All Products" },
@@ -22,6 +25,8 @@ const navLinks = [
 
 export function Header() {
   const isMobile = useIsMobile();
+  const { user, isUserLoading } = useUser();
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center px-4">
@@ -55,6 +60,22 @@ export function Header() {
             </Link>
           </Button>
 
+          {isUserLoading ? (
+             <Skeleton className="h-8 w-24" />
+          ) : user ? (
+            <UserNav />
+          ) : (
+            <div className="hidden md:flex items-center gap-2">
+              <Button variant="outline" asChild>
+                <Link href="/login">Log In</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/signup">Sign Up</Link>
+              </Button>
+            </div>
+          )}
+
+
           {isMobile && (
             <Sheet>
               <SheetTrigger asChild>
@@ -74,6 +95,24 @@ export function Header() {
                     {link.label}
                     </Link>
                 ))}
+                 <hr />
+                  {isUserLoading ? (
+                    <div className="flex flex-col gap-4">
+                      <Skeleton className="h-10 w-full" />
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                  ) : user ? (
+                    <p>Welcome, {user.displayName || user.email}</p>
+                  ) : (
+                    <div className="flex flex-col gap-4">
+                      <Button variant="outline" asChild>
+                        <Link href="/login">Log In</Link>
+                      </Button>
+                      <Button asChild>
+                        <Link href="/signup">Sign Up</Link>
+                      </Button>
+                    </div>
+                  )}
                 </nav>
               </SheetContent>
             </Sheet>
