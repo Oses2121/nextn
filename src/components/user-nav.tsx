@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth, useUser } from "@/firebase";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { LogOut } from "lucide-react";
+import { LogOut, LayoutDashboard } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -60,6 +60,9 @@ export function UserNav() {
           </DropdownMenuItem>
            <DropdownMenuItem asChild>
             <Link href="/orders">My Orders</Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/admin/dashboard"><LayoutDashboard className="mr-2 h-4 w-4" />Admin</Link>
           </DropdownMenuItem>
           <DropdownMenuItem>
             Settings
