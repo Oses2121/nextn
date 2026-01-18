@@ -95,6 +95,42 @@
       "description": "Natural bar soap with lavender",
       "imageUrl": "https://images.unsplash.com/photo-1620917663999-929514e824a7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxiYXIlMjBzb2FwfGVufDB8fHx8MTcxOTU5NDM1OXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "bar soap"
+    },
+    {
+      "id": "product-13",
+      "description": "Kombucha brewing in a large glass jar.",
+      "imageUrl": "https://images.unsplash.com/photo-1593361837346-ac313019d979?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxrb21idWNoYSUyMGtpdHxlbnwwfHx8fDE3Njg2OTgxNzh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "kombucha kit"
+    },
+    {
+      "id": "product-14",
+      "description": "Aromatherapy diffuser with a light.",
+      "imageUrl": "https://images.unsplash.com/photo-1647934174425-61136513aed7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxvaWwlMjBkaWZmdXNlcnxlbnwwfHx8fDE3Njg2OTgxNzh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "oil diffuser"
+    },
+    {
+      "id": "product-15",
+      "description": "Sleek insulated water bottle.",
+      "imageUrl": "https://images.unsplash.com/photo-1553564552-02656d6a2390?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHx3YXRlciUyMGJvdHRsZXxlbnwwfHx8fDE3Njg2MDEyMzV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "water bottle"
+    },
+    {
+      "id": "product-16",
+      "description": "Bag of organic coffee beans.",
+      "imageUrl": "https://images.unsplash.com/photo-1624976921221-4478954a4bc9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjb2ZmZWUlMjBiZWFuc3xlbnwwfHx8fDE3Njg2MjU0MTZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "coffee beans"
+    },
+    {
+      "id": "product-17",
+      "description": "A jump rope ready for a workout.",
+      "imageUrl": "https://images.unsplash.com/photo-1709117439801-9956c35c4726?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxqdW1wJTIwcm9wZXxlbnwwfHx8fDE3Njg2NjAwODl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "jump rope"
+    },
+    {
+      "id": "product-18",
+      "description": "A stick of natural deodorant.",
+      "imageUrl": "https://images.unsplash.com/photo-1764909262009-3dcd5691185c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxuYXR1cmFsJTIwZGVvZG9yYW50fGVufDB8fHx8MTc2ODY5ODE3OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "natural deodorant"
     }
   ]
 }
