@@ -1,0 +1,124 @@
+/**
+ * Core Philosophy: This ruleset enforces a strict user-ownership security model,
+ * often referred to as a "data silo" pattern. All user-generated content is
+ * isolated and accessible only by its creator.
+ *
+ * Data Structure: The entire data model is hierarchical, with all user-specific
+ * collections (revenues, expenses, appointments) nested under a parent
+ * `/users/{userId}` path. This structure makes ownership unambiguous and enables
+ * efficient, secure queries.
+ *
+ * Key Security Decisions:
+ * - User Data Isolation: A user can only access data located under their own
+ *   `userId` path segment.
+ * - No User Enumeration: Listing documents in the top-level `/users`
+ *   collection is explicitly forbidden to prevent attackers from discovering
+ *   the list of all application users.
+ * - Path-Based Authorization: All security decisions are made by comparing the
+ *   `{userId}` wildcard in the path to the authenticated user's UID. This
+ *   is highly performant as it avoids extra database reads (`get()` calls).
+ * - Prototyping Flexibility: In this prototyping phase, the rules focus
+ *   strictly on authorization (who can access what). Data validation of
+ *   specific fields is intentionally omitted to allow developers to rapidly
+ *   iterate on the data model without being blocked by security rules.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ------------------------------------------------------------------------
+    // Helper Functions
+    // ------------------------------------------------------------------------
+
+    /**
+     * Checks if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the authenticated user's ID matches the provided userId.
+     * This is the core of the ownership model.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Checks for ownership on an existing document. Used for safe updates and
+     * deletes, preventing operations on non-existent documents.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    // ------------------------------------------------------------------------
+    // Collection Rules
+    // ------------------------------------------------------------------------
+
+    /**
+     * @description Secures the user's root document (e.g., for profile info).
+     * @path        /users/{userId}
+     * @allow       (create) A new user `auth.uid: "user_abc"` can create their own document at `/users/user_abc`.
+     * @deny        (list) An authenticated user cannot list all documents at `/users` to prevent user enumeration.
+     * @deny        (update) A user `auth.uid: "user_xyz"` cannot update the document at `/users/user_abc`.
+     * @principle   Enforces self-creation and ownership for a user's primary document and prevents user enumeration.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Secures a user's private revenue transactions.
+     * @path        /users/{userId}/revenues/{revenueId}
+     * @allow       (create) A user `auth.uid: "user_abc"` can create a new revenue document at `/users/user_abc/revenues/rev_123`.
+     * @allow       (list) A user `auth.uid: "user_abc"` can list all documents in their own `/users/user_abc/revenues` collection.
+     * @deny        (get) A user `auth.uid: "user_xyz"` cannot read a document at `/users/user_abc/revenues/rev_123`.
+     * @principle   Restricts all access to a user's own data tree using path-based ownership.
+     */
+    match /users/{userId}/revenues/{revenueId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Secures a user's private expense transactions.
+     * @path        /users/{userId}/expenses/{expenseId}
+     * @allow       (create) A user `auth.uid: "user_abc"` can create a new expense document at `/users/user_abc/expenses/exp_123`.
+     * @allow       (list) A user `auth.uid: "user_abc"` can list all documents in their own `/users/user_abc/expenses` collection.
+     * @deny        (get) A user `auth.uid: "user_xyz"` cannot read a document at `/users/user_abc/expenses/exp_123`.
+     * @principle   Restricts all access to a user's own data tree using path-based ownership.
+     */
+    match /users/{userId}/expenses/{expenseId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Secures a user's private appointments.
+     * @path        /users/{userId}/appointments/{appointmentId}
+     * @allow       (create) A user `auth.uid: "user_abc"` can create a new appointment at `/users/user_abc/appointments/appt_123`.
+     * @allow       (list) A user `auth.uid: "user_abc"` can list all documents in their own `/users/user_abc/appointments` collection.
+     * @deny        (get) A user `auth.uid: "user_xyz"` cannot read a document at `/users/user_abc/appointments/appt_123`.
+     * @principle   Restricts all access to a user's own data tree using path-based ownership.
+     */
+    match /users/{userId}/appointments/{appointmentId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
+    }
+  }
+}
