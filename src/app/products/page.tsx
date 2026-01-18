@@ -105,15 +105,15 @@ export default function ProductsPage() {
 
     // Filter by price
     filtered = filtered.filter(
-      (p) => p.price >= priceRange[0] && p.price <= priceRange[1]
+      (p) => p.basePrice >= priceRange[0] && p.basePrice <= priceRange[1]
     );
 
     // Sort products
     switch (sortOrder) {
       case 'price-asc':
-        return [...filtered].sort((a, b) => a.price - b.price);
+        return [...filtered].sort((a, b) => a.basePrice - b.basePrice);
       case 'price-desc':
-        return [...filtered].sort((a, b) => b.price - a.price);
+        return [...filtered].sort((a, b) => b.basePrice - a.basePrice);
       case 'name-asc':
         return [...filtered].sort((a, b) => a.name.localeCompare(b.name));
       case 'name-desc':

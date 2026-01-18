@@ -80,22 +80,41 @@ export default function CheckoutPage() {
         await runTransaction(firestore, async (transaction) => {
             const stockIssues: string[] = [];
 
-            // 1. Read all product stocks first
-            const productRefs = cartItems.map(item => doc(firestore, 'products', item.id));
+            // 1. Create a map of product IDs to their required quantities
+            const productQuantities: Record<string, { item: typeof cartItems[0], quantity: number }[]> = {};
+            for (const item of cartItems) {
+                if (!productQuantities[item.productId]) {
+                    productQuantities[item.productId] = [];
+                }
+                productQuantities[item.productId].push({ item, quantity: item.quantity });
+            }
+            
+            const productIds = Object.keys(productQuantities);
+            const productRefs = productIds.map(id => doc(firestore, 'products', id));
             const productSnapshots = await Promise.all(productRefs.map(ref => transaction.get(ref)));
 
-            // 2. Validate stock for all items
-            for (let i = 0; i < cartItems.length; i++) {
-                const item = cartItems[i];
+            // 2. Validate stock and prepare updates for all items
+            for (let i = 0; i < productSnapshots.length; i++) {
                 const productSnap = productSnapshots[i];
+                const productId = productIds[i];
 
                 if (!productSnap.exists()) {
-                    throw new Error(`Product ${item.name} not found.`);
+                    throw new Error(`A product in your cart could not be found.`);
                 }
+                
+                const productData = productSnap.data() as Product;
+                const itemsToPurchase = productQuantities[productId];
 
-                const currentStock = productSnap.data().stock;
-                if (currentStock < item.quantity) {
-                    stockIssues.push(`${item.name} (only ${currentStock} left)`);
+                for (const { item, quantity } of itemsToPurchase) {
+                    const variant = productData.variants.find(v => v.name === item.variantName);
+
+                    if (!variant) {
+                         throw new Error(`Variant ${item.variantName} for ${item.name} not found.`);
+                    }
+
+                    if (variant.stock < quantity) {
+                        stockIssues.push(`${item.name} - ${item.variantName} (only ${variant.stock} left)`);
+                    }
                 }
             }
 
@@ -104,22 +123,41 @@ export default function CheckoutPage() {
                 throw new Error(`Some items are out of stock: ${stockIssues.join(', ')}`);
             }
 
-            // 3. If all stocks are fine, update them
-            for (let i = 0; i < cartItems.length; i++) {
-                const item = cartItems[i];
+            // 3. If all stocks are fine, perform the updates
+            for (let i = 0; i < productSnapshots.length; i++) {
+                const productSnap = productSnapshots[i];
                 const productRef = productRefs[i];
-                const currentStock = productSnapshots[i].data()!.stock;
-                const newStock = currentStock - item.quantity;
-                transaction.update(productRef, { stock: newStock });
+                const productData = productSnap.data() as Product;
+                const itemsToPurchase = productQuantities[productData.id];
+
+                const newVariants = productData.variants.map(variant => {
+                    const item = itemsToPurchase.find(p => p.item.variantName === variant.name);
+                    if (item) {
+                        return { ...variant, stock: variant.stock - item.quantity };
+                    }
+                    return variant;
+                });
+
+                transaction.update(productRef, { variants: newVariants });
             }
 
             // 4. Create the new order
             const orderRef = doc(collection(firestore, `users/${user.uid}/orders`));
+            const orderItems = cartItems.map(item => ({
+                productId: item.productId,
+                name: item.name,
+                variantName: item.variantName,
+                price: item.price,
+                quantity: item.quantity,
+                imageId: item.imageId,
+                category: item.category,
+            }));
+            
             transaction.set(orderRef, {
                 userId: user.uid,
                 createdAt: serverTimestamp(),
                 total: total,
-                items: cartItems,
+                items: orderItems,
                 shippingInfo: shippingInfo,
             });
         });
@@ -276,7 +314,10 @@ export default function CheckoutPage() {
                                 </div>
                                 <div className="flex-1">
                                     <p className="font-medium">{item.name}</p>
-                                    <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                      {item.variantName !== 'Default' ? `${item.variantName}, ` : ''} 
+                                      Qty: {item.quantity}
+                                    </p>
                                 </div>
                                 <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
                             </div>

@@ -32,7 +32,7 @@ function ProductsTableSkeleton() {
                     <TableHead>Name</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Price</TableHead>
-                    <TableHead className="hidden md:table-cell">Stock</TableHead>
+                    <TableHead className="hidden md:table-cell">Total Stock</TableHead>
                     <TableHead>
                         <span className="sr-only">Actions</span>
                     </TableHead>
@@ -145,7 +145,7 @@ export default function AdminProductsPage() {
                 <TableHead>Name</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Price</TableHead>
-                <TableHead className="hidden md:table-cell">Stock</TableHead>
+                <TableHead className="hidden md:table-cell">Total Stock</TableHead>
                 <TableHead>
                     <span className="sr-only">Actions</span>
                 </TableHead>
@@ -154,6 +154,12 @@ export default function AdminProductsPage() {
             <TableBody>
                 {products?.map((product) => {
                     const productImage = PlaceHolderImages.find(img => img.id === product.imageId);
+                    const totalStock = product.variants?.reduce((acc, v) => acc + v.stock, 0) || 0;
+                    const prices = product.variants?.map(v => v.price) || [product.basePrice];
+                    const priceDisplay = prices.length > 1 && Math.min(...prices) !== Math.max(...prices)
+                        ? `$${Math.min(...prices).toFixed(2)} - $${Math.max(...prices).toFixed(2)}`
+                        : `$${product.basePrice.toFixed(2)}`;
+
                     return (
                         <TableRow key={product.id}>
                             <TableCell className="hidden sm:table-cell">
@@ -170,12 +176,12 @@ export default function AdminProductsPage() {
                             </TableCell>
                             <TableCell className="font-medium">{product.name}</TableCell>
                             <TableCell>
-                                <Badge variant={product.stock > 0 ? "outline" : "destructive"}>
-                                    {product.stock > 0 ? "In Stock" : "Out of Stock"}
+                                <Badge variant={totalStock > 0 ? "outline" : "destructive"}>
+                                    {totalStock > 0 ? "In Stock" : "Out of Stock"}
                                 </Badge>
                             </TableCell>
-                            <TableCell>${product.price.toFixed(2)}</TableCell>
-                            <TableCell className="hidden md:table-cell">{product.stock}</TableCell>
+                            <TableCell>{priceDisplay}</TableCell>
+                            <TableCell className="hidden md:table-cell">{totalStock}</TableCell>
                             <TableCell>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -208,7 +214,7 @@ export default function AdminProductsPage() {
     </Card>
 
     <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className="sm:max-w-lg w-[90vw] overflow-y-auto">
+        <SheetContent className="sm:max-w-2xl w-[90vw] overflow-y-auto">
             <SheetHeader className="px-6 pt-6">
                 <SheetTitle>{productToEdit ? 'Edit Product' : 'Add New Product'}</SheetTitle>
                 <SheetDescription>

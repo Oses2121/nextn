@@ -7,14 +7,20 @@ export interface Category {
   slug: string;
 }
 
+export interface ProductVariant {
+  name: string; // e.g., "Small", "Red", "Large"
+  price: number;
+  stock: number;
+}
+
 export interface Product {
   id: string; // Document ID from Firestore
   name: string;
-  price: number;
+  basePrice: number; // The default price to show on cards/listings
   category: string; // This should be a category slug
   description: string;
   imageId: string;
-  stock: number;
+  variants: ProductVariant[];
 }
 
 export interface ProductReview {
@@ -29,11 +35,11 @@ export interface ProductReview {
 
 // Represents a product item within an order (a snapshot of the product at purchase time)
 export interface OrderItem {
-  id: string; // Product ID
+  productId: string;
   name: string;
+  variantName: string;
   price: number;
   category: string;
-  description: string;
   imageId: string;
   quantity: number;
 }

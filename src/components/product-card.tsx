@@ -16,7 +16,6 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
     const productImage = PlaceHolderImages.find(img => img.id === product.imageId);
-    const { addToCart } = useCart();
     const { isProductInWishlist, toggleProductInWishlist } = useWishlist();
 
     const isWishlisted = isProductInWishlist(product.id);
@@ -50,12 +49,14 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="p-4">
           <h3 className="text-lg font-semibold">{product.name}</h3>
           <p className="text-muted-foreground text-sm">{product.category}</p>
-          <p className="text-lg font-bold mt-2">${product.price.toFixed(2)}</p>
+          <p className="text-lg font-bold mt-2">${product.basePrice.toFixed(2)}</p>
         </div>
       </Link>
       <div className="p-4 pt-0">
-        <Button className="w-full" onClick={() => addToCart(product)}>
-            <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
+        <Button asChild className="w-full">
+            <Link href={`/products/${product.id}`}>
+                <ShoppingCart className="mr-2 h-4 w-4" /> View Options
+            </Link>
         </Button>
       </div>
     </div>

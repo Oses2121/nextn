@@ -63,8 +63,9 @@
         "name": {
           "type": "string"
         },
-        "price": {
-          "type": "number"
+        "basePrice": {
+          "type": "number",
+          "description": "The base price for listing pages."
         },
         "category": {
           "type": "string"
@@ -75,15 +76,36 @@
         "imageId": {
           "type": "string"
         },
-        "stock": {
-          "type": "number"
+        "variants": {
+          "type": "array",
+          "description": "Product variants like size or color.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "e.g., Small, Medium, Large"
+              },
+              "price": {
+                "type": "number"
+              },
+              "stock": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "name",
+              "price",
+              "stock"
+            ]
+          }
         }
       },
       "required": [
         "name",
-        "price",
+        "basePrice",
         "category",
-        "stock"
+        "variants"
       ]
     },
     "OrderItem": {

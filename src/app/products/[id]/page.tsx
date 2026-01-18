@@ -3,16 +3,16 @@
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Star, Minus, Plus, ShoppingCart, Heart } from "lucide-react";
+import { Star, Minus, Plus, ShoppingCart, Heart, CheckCircle } from "lucide-react";
 import { ProductCard } from "@/components/product-card";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/context/cart-context";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { notFound } from "next/navigation";
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase";
 import { addDoc, collection, query, where, serverTimestamp, orderBy, doc, limit } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
-import type { Product, ProductReview } from "@/lib/types";
+import type { Product, ProductReview, ProductVariant } from "@/lib/types";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +21,7 @@ import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWishlist } from "@/context/wishlist-context";
 import { cn } from "@/lib/utils";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 
 function ReviewCard({ review }: { review: ProductReview }) {
@@ -103,6 +104,14 @@ export default function ProductDetailPage({
 
   const productDocRef = useMemoFirebase(() => doc(firestore, 'products', productId), [firestore, productId]);
   const { data: product, isLoading: isProductLoading } = useDoc<Product>(productDocRef);
+
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
+
+  useEffect(() => {
+    if (product?.variants?.length) {
+      setSelectedVariant(product.variants[0]);
+    }
+  }, [product]);
   
   const reviewsQuery = useMemoFirebase(() => {
     if (!firestore || !productId) return null;
@@ -138,10 +147,11 @@ export default function ProductDetailPage({
   const isWishlisted = product ? isProductInWishlist(product.id) : false;
 
   const productImage = product ? PlaceHolderImages.find((img) => img.id === product.imageId) : null;
+  const displayPrice = selectedVariant ? selectedVariant.price : (product?.basePrice || 0);
 
   const handleAddToCart = () => {
-    if (product) {
-        addToCart(product, quantity);
+    if (product && selectedVariant) {
+        addToCart(product, selectedVariant, quantity);
     }
   };
 
@@ -209,16 +219,51 @@ export default function ProductDetailPage({
                     <span className="text-sm text-muted-foreground">({reviewCount} reviews)</span>
                 </div>
             </div>
-            <p className="text-3xl font-bold">${product.price.toFixed(2)}</p>
+
+            {product.variants.length > 1 && (
+              <div>
+                <Label className="text-lg font-medium">Select {product.variants[0].name.toLowerCase().includes('size') ? 'Size' : 'Variant'}</Label>
+                 <RadioGroup 
+                    value={selectedVariant?.name} 
+                    onValueChange={(variantName) => {
+                      const variant = product.variants.find(v => v.name === variantName) || null;
+                      setSelectedVariant(variant);
+                    }}
+                    className="flex flex-wrap gap-2 mt-2"
+                  >
+                  {product.variants.map((variant) => (
+                    <div key={variant.name}>
+                      <RadioGroupItem value={variant.name} id={variant.name} className="peer sr-only" />
+                      <Label
+                        htmlFor={variant.name}
+                        className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                      >
+                        {variant.name}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+            )}
+            
+            <p className="text-3xl font-bold">${displayPrice.toFixed(2)}</p>
             <p className="text-muted-foreground">{product.description}</p>
             
+            {selectedVariant && selectedVariant.stock > 0 ? (
+               <p className="text-sm text-green-600 flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4" /> In Stock ({selectedVariant.stock} available)
+               </p>
+            ) : (
+               <p className="text-sm text-destructive">Out of Stock</p>
+            )}
+
             <div className="flex items-center gap-4">
                 <div className="flex items-center border rounded-md">
                     <Button variant="ghost" size="icon" onClick={decreaseQuantity}><Minus className="h-4 w-4"/></Button>
                     <span className="w-12 text-center">{quantity}</span>
                     <Button variant="ghost" size="icon" onClick={increaseQuantity}><Plus className="h-4 w-4"/></Button>
                 </div>
-                <Button size="lg" className="flex-1" onClick={handleAddToCart}>
+                <Button size="lg" className="flex-1" onClick={handleAddToCart} disabled={!selectedVariant || selectedVariant.stock === 0}>
                     <ShoppingCart className="mr-2 h-5 w-5"/>
                     Add to Cart
                 </Button>

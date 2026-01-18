@@ -1,18 +1,26 @@
 'use client';
 
-import { Product } from '@/lib/types';
+import { Product, ProductVariant } from '@/lib/types';
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
-export interface CartItem extends Product {
+export interface CartItem {
+  id: string; // Composite ID: e.g., `productId_variantName`
+  productId: string;
+  name: string;
+  variantName: string;
+  price: number;
   quantity: number;
+  imageId: string;
+  category: string;
 }
+
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (product: Product, quantity?: number) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addToCart: (product: Product, selectedVariant: ProductVariant, quantity?: number) => void;
+  removeFromCart: (cartItemId: string) => void;
+  updateQuantity: (cartItemId: string, quantity: number) => void;
   cartCount: number;
   totalPrice: number;
   clearCart: () => void;
@@ -46,39 +54,51 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   }, [cartItems]);
 
 
-  const addToCart = (product: Product, quantity: number = 1) => {
+  const addToCart = (product: Product, selectedVariant: ProductVariant, quantity: number = 1) => {
+    const cartItemId = `${product.id}_${selectedVariant.name}`;
+    
     setCartItems((prevItems) => {
-      const existingItem = prevItems.find((item) => item.id === product.id);
+      const existingItem = prevItems.find((item) => item.id === cartItemId);
       if (existingItem) {
         // Increase quantity of existing item
         return prevItems.map((item) =>
-          item.id === product.id
+          item.id === cartItemId
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       } else {
         // Add new item to cart
-        return [...prevItems, { ...product, quantity }];
+        const newItem: CartItem = {
+            id: cartItemId,
+            productId: product.id,
+            name: product.name,
+            variantName: selectedVariant.name,
+            price: selectedVariant.price,
+            quantity,
+            imageId: product.imageId,
+            category: product.category,
+        };
+        return [...prevItems, newItem];
       }
     });
     toast({
         title: "Added to cart",
-        description: `${product.name} has been added to your cart.`,
-      });
+        description: `${product.name} (${selectedVariant.name}) has been added to your cart.`,
+    });
   };
 
-  const removeFromCart = (productId: string) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== productId));
+  const removeFromCart = (cartItemId: string) => {
+    setCartItems((prevItems) => prevItems.filter((item) => item.id !== cartItemId));
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (cartItemId: string, quantity: number) => {
     if (quantity <= 0) {
-        removeFromCart(productId);
+        removeFromCart(cartItemId);
         return;
     }
     setCartItems((prevItems) =>
       prevItems.map((item) =>
-        item.id === productId ? { ...item, quantity } : item
+        item.id === cartItemId ? { ...item, quantity } : item
       )
     );
   };

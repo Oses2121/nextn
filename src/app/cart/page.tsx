@@ -56,7 +56,7 @@ export default function CartPage() {
                       <div className="flex-1">
                         <h3 className="font-semibold">{item.name}</h3>
                         <p className="text-sm text-muted-foreground">
-                          {item.category}
+                          {item.variantName !== 'Default' ? item.variantName : item.category}
                         </p>
                         <p className="text-lg font-bold mt-1">
                           ${item.price.toFixed(2)}
