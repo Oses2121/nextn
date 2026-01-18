@@ -99,5 +99,29 @@ service cloud.firestore {
       allow create: if isSignedIn();
       allow update, delete: if isOwner(resource.data.userId);
     }
+
+    /**
+     * @description Secures product listings.
+     * @path        /products/{productId}
+     * @allow       (list, get) Anyone can read product information.
+     * @allow       (write) Only administrators should be able to create, update, or delete products.
+     * @principle   For this prototype, any authenticated user can write, but this would be restricted in production.
+     */
+    match /products/{productId} {
+      allow get, list: if true;
+      allow write: if isSignedIn(); // TODO: Replace with `isAdmin()` check
+    }
+
+    /**
+     * @description Secures category listings.
+     * @path        /categories/{categoryId}
+     * @allow       (list, get) Anyone can read category information.
+     * @allow       (write) Only administrators should be able to modify categories.
+     * @principle   For this prototype, any authenticated user can write, but this would be restricted in production.
+     */
+    match /categories/{categoryId} {
+      allow get, list: if true;
+      allow write: if isSignedIn(); // TODO: Replace with `isAdmin()` check
+    }
   }
 }

@@ -31,13 +31,61 @@
         "email"
       ]
     },
+    "Category": {
+      "title": "Category",
+      "description": "Represents a product category.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "slug"
+      ]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Represents a product in the store.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "price": {
+          "type": "number"
+        },
+        "category": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "imageId": {
+          "type": "string"
+        },
+        "stock": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "name",
+        "price",
+        "category",
+        "stock"
+      ]
+    },
     "OrderItem": {
       "title": "Order Item",
       "description": "Represents a single product within an order.",
       "type": "object",
       "properties": {
         "id": {
-          "type": "number"
+          "type": "string"
         },
         "name": {
           "type": "string"
@@ -45,11 +93,17 @@
         "price": {
           "type": "number"
         },
-        "quantity": {
-          "type": "number"
+        "category": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
         },
         "imageId": {
           "type": "string"
+        },
+        "quantity": {
+          "type": "number"
         }
       },
       "required": [
@@ -127,7 +181,7 @@
           "description": "The display name of the user who wrote the review."
         },
         "productId": {
-          "type": "number",
+          "type": "string",
           "description": "The ID of the product being reviewed."
         },
         "rating": {
@@ -214,8 +268,40 @@
             }
           ]
         }
+      },
+      {
+        "path": "/products/{productId}",
+        "definition": {
+          "entityName": "Product",
+          "schema": {
+            "$ref": "#/backend/entities/Product"
+          },
+          "description": "Stores all products available in the shop. Can be read by anyone, but only writable by admins.",
+          "params": [
+            {
+              "name": "productId",
+              "description": "The unique identifier for the product."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/categories/{categoryId}",
+        "definition": {
+          "entityName": "Category",
+          "schema": {
+            "$ref": "#/backend/entities/Category"
+          },
+          "description": "Stores all product categories. Can be read by anyone.",
+          "params": [
+            {
+              "name": "categoryId",
+              "description": "The unique identifier for the category."
+            }
+          ]
+        }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to be simple and secure. The primary collection is `/users`, where each document's ID is the Firebase Authentication UID of the user. This enforces a strict one-to-one relationship between an authentication identity and a user profile document, enabling strong, path-based security rules. All user-specific data that is not collaborative can be stored in sub-collections under the user's document, ensuring data isolation and straightforward ownership rules. Public data, like product reviews, is stored in a separate top-level collection with its own security rules."
+    "reasoning": "The Firestore data structure is designed to be simple and secure. User-specific data is nested under `/users/{userId}` to enable path-based ownership rules. Public or collaborative data like products, categories, and reviews are stored in top-level collections with their own specific security rules. This separation allows for both strong user data isolation and flexible public access."
   }
 }

@@ -1,6 +1,5 @@
 'use client';
 
-import { products } from "@/lib/data";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -10,12 +9,12 @@ import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/context/cart-context";
 import { useState } from "react";
 import { notFound } from "next/navigation";
-import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { addDoc, collection, query, where, serverTimestamp, orderBy } from "firebase/firestore";
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase";
+import { addDoc, collection, query, where, serverTimestamp, orderBy, doc, limit } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
-import type { ProductReview } from "@/lib/types";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import type { Product, ProductReview } from "@/lib/types";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
@@ -53,6 +52,33 @@ function ReviewCard({ review }: { review: ProductReview }) {
   )
 }
 
+function ProductDetailSkeleton() {
+    return (
+        <div className="grid md:grid-cols-2 gap-12">
+            <div>
+                <Skeleton className="aspect-square relative rounded-lg" />
+            </div>
+            <div className="space-y-6">
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-10 w-3/4" />
+                    <Skeleton className="h-5 w-1/3" />
+                </div>
+                <Skeleton className="h-8 w-1/4" />
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-2/3" />
+                </div>
+                <div className="flex items-center gap-4">
+                    <Skeleton className="h-12 w-32" />
+                    <Skeleton className="h-12 flex-1" />
+                </div>
+            </div>
+        </div>
+    )
+}
+
 
 export default function ProductDetailPage({
   params,
@@ -69,15 +95,12 @@ export default function ProductDetailPage({
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const product = products.find((p) => p.id === parseInt(params.id));
-
-  if (!product) {
-    notFound();
-  }
   
-  const productId = product.id;
+  const productId = params.id;
 
+  const productDocRef = useMemoFirebase(() => doc(firestore, 'products', productId), [firestore, productId]);
+  const { data: product, isLoading: isProductLoading } = useDoc<Product>(productDocRef);
+  
   const reviewsQuery = useMemoFirebase(() => {
     if (!firestore || !productId) return null;
     return query(
@@ -86,8 +109,23 @@ export default function ProductDetailPage({
       orderBy('createdAt', 'desc')
     );
   }, [firestore, productId]);
-
   const { data: reviews, isLoading: areReviewsLoading } = useCollection<ProductReview>(reviewsQuery);
+  
+  const relatedProductsQuery = useMemoFirebase(() => {
+    if (!firestore || !product) return null;
+    return query(
+        collection(firestore, 'products'),
+        where('category', '==', product.category),
+        limit(4) // Fetch a bit more to filter out the current product
+    );
+  }, [firestore, product]);
+  const { data: relatedProductsData, isLoading: areRelatedLoading } = useCollection<Product>(relatedProductsQuery);
+  const relatedProducts = relatedProductsData?.filter(p => p.id !== productId).slice(0,3);
+
+
+  if (!isProductLoading && !product) {
+    notFound();
+  }
   
   const reviewCount = reviews?.length || 0;
   const avgRating = reviews && reviewCount > 0
@@ -95,11 +133,12 @@ export default function ProductDetailPage({
     : 0;
 
 
-  const productImage = PlaceHolderImages.find((img) => img.id === product.imageId);
-  const relatedProducts = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 3);
+  const productImage = product ? PlaceHolderImages.find((img) => img.id === product.imageId) : null;
 
   const handleAddToCart = () => {
-    addToCart(product, quantity);
+    if (product) {
+        addToCart(product, quantity);
+    }
   };
 
   const increaseQuantity = () => setQuantity(prev => prev + 1);
@@ -107,7 +146,7 @@ export default function ProductDetailPage({
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !firestore) {
+    if (!user || !firestore || !product) {
       toast({ variant: 'destructive', title: 'You must be logged in to leave a review.' });
       return;
     }
@@ -140,47 +179,49 @@ export default function ProductDetailPage({
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="grid md:grid-cols-2 gap-12">
-        <div>
-          <div className="aspect-square relative rounded-lg overflow-hidden border">
-            {productImage && (
-              <Image
-                src={productImage.imageUrl}
-                alt={product.name}
-                fill
-                style={{ objectFit: "cover" }}
-                data-ai-hint={productImage.imageHint}
-              />
-            )}
-          </div>
-        </div>
-        <div className="space-y-6">
-          <div>
-            <span className="text-sm text-muted-foreground">{product.category}</span>
-            <h1 className="text-4xl font-bold">{product.name}</h1>
-            <div className="flex items-center gap-2 mt-2">
-                <div className="flex items-center">
-                    {[...Array(5)].map((_, i) => <Star key={i} className={`h-5 w-5 ${i < avgRating ? 'text-primary fill-current' : 'text-muted-foreground'}`}/>)}
+      {isProductLoading || !product ? <ProductDetailSkeleton /> : (
+        <div className="grid md:grid-cols-2 gap-12">
+            <div>
+            <div className="aspect-square relative rounded-lg overflow-hidden border">
+                {productImage && (
+                <Image
+                    src={productImage.imageUrl}
+                    alt={product.name}
+                    fill
+                    style={{ objectFit: "cover" }}
+                    data-ai-hint={productImage.imageHint}
+                />
+                )}
+            </div>
+            </div>
+            <div className="space-y-6">
+            <div>
+                <span className="text-sm text-muted-foreground">{product.category}</span>
+                <h1 className="text-4xl font-bold">{product.name}</h1>
+                <div className="flex items-center gap-2 mt-2">
+                    <div className="flex items-center">
+                        {[...Array(5)].map((_, i) => <Star key={i} className={`h-5 w-5 ${i < avgRating ? 'text-primary fill-current' : 'text-muted-foreground'}`}/>)}
+                    </div>
+                    <span className="text-sm text-muted-foreground">({reviewCount} reviews)</span>
                 </div>
-                <span className="text-sm text-muted-foreground">({reviewCount} reviews)</span>
             </div>
-          </div>
-          <p className="text-3xl font-bold">${product.price.toFixed(2)}</p>
-          <p className="text-muted-foreground">{product.description}</p>
-          
-          <div className="flex items-center gap-4">
-            <div className="flex items-center border rounded-md">
-                <Button variant="ghost" size="icon" onClick={decreaseQuantity}><Minus className="h-4 w-4"/></Button>
-                <span className="w-12 text-center">{quantity}</span>
-                <Button variant="ghost" size="icon" onClick={increaseQuantity}><Plus className="h-4 w-4"/></Button>
+            <p className="text-3xl font-bold">${product.price.toFixed(2)}</p>
+            <p className="text-muted-foreground">{product.description}</p>
+            
+            <div className="flex items-center gap-4">
+                <div className="flex items-center border rounded-md">
+                    <Button variant="ghost" size="icon" onClick={decreaseQuantity}><Minus className="h-4 w-4"/></Button>
+                    <span className="w-12 text-center">{quantity}</span>
+                    <Button variant="ghost" size="icon" onClick={increaseQuantity}><Plus className="h-4 w-4"/></Button>
+                </div>
+                <Button size="lg" className="flex-1" onClick={handleAddToCart}>
+                    <ShoppingCart className="mr-2 h-5 w-5"/>
+                    Add to Cart
+                </Button>
             </div>
-            <Button size="lg" className="flex-1" onClick={handleAddToCart}>
-                <ShoppingCart className="mr-2 h-5 w-5"/>
-                Add to Cart
-            </Button>
-          </div>
+            </div>
         </div>
-      </div>
+      )}
       
       <Separator className="my-16" />
 
@@ -235,7 +276,7 @@ export default function ProductDetailPage({
                         required
                       />
                     </div>
-                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                    <Button type="submit" className="w-full" disabled={isSubmitting || !product}>
                       {isSubmitting ? 'Submitting...' : 'Submit Review'}
                     </Button>
                  </form>
@@ -243,7 +284,7 @@ export default function ProductDetailPage({
                 <div className="text-center">
                   <p className="text-muted-foreground mb-4">You must be logged in to leave a review.</p>
                   <Button asChild>
-                    <Link href={`/login?redirect=/products/${product.id}`}>Log In</Link>
+                    <Link href={`/login?redirect=/products/${productId}`}>Log In</Link>
                   </Button>
                 </div>
               )}
@@ -256,9 +297,22 @@ export default function ProductDetailPage({
 
       <div>
         <h2 className="text-3xl font-bold tracking-tight text-center mb-8">Related Products</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {relatedProducts.map(p => <ProductCard key={p.id} product={p} />)}
-        </div>
+        {areRelatedLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                 {[...Array(3)].map((_, i) => (
+                    <div key={i} className="space-y-2">
+                        <Skeleton className="aspect-square rounded-lg" />
+                        <Skeleton className="h-6 w-3/4" />
+                        <Skeleton className="h-4 w-1/2" />
+                        <Skeleton className="h-6 w-1/4" />
+                    </div>
+                 ))}
+            </div>
+        ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {relatedProducts?.map(p => <ProductCard key={p.id} product={p} />)}
+            </div>
+        )}
       </div>
     </div>
   );

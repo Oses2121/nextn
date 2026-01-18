@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "./ui/button";
-import { Product } from "@/lib/data";
+import { Product } from "@/lib/types";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/context/cart-context";

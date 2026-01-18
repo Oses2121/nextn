@@ -3,7 +3,6 @@
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect, useMemo } from 'react';
 import { ProductCard } from '@/components/product-card';
-import { products, categories } from '@/lib/data';
 import {
   Select,
   SelectContent,
@@ -15,11 +14,37 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
+import { Category, Product } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
+
+function ProductsPageSkeleton() {
+    return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[...Array(6)].map((_, i) => (
+                <div key={i} className="space-y-2">
+                    <Skeleton className="aspect-square rounded-lg" />
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-6 w-1/4" />
+                </div>
+            ))}
+        </div>
+    )
+}
 
 export default function ProductsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  
+  const firestore = useFirestore();
+  const productsQuery = useMemoFirebase(() => collection(firestore, 'products'), [firestore]);
+  const categoriesQuery = useMemoFirebase(() => collection(firestore, 'categories'), [firestore]);
+
+  const { data: products, isLoading: areProductsLoading } = useCollection<Product>(productsQuery);
+  const { data: categories, isLoading: areCategoriesLoading } = useCollection<Category>(categoriesQuery);
 
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState<string>('featured');
@@ -59,6 +84,8 @@ export default function ProductsPage() {
   };
 
   const filteredAndSortedProducts = useMemo(() => {
+    if (!products) return [];
+    
     let filtered = products;
 
     // Filter by search query
@@ -93,11 +120,12 @@ export default function ProductsPage() {
         return [...filtered].sort((a, b) => b.name.localeCompare(a.name));
       case 'featured':
       default:
+        // In a real app, 'featured' would be based on a specific field or logic
         return filtered;
     }
-  }, [selectedCategories, sortOrder, priceRange, searchQuery]);
+  }, [selectedCategories, sortOrder, priceRange, searchQuery, products]);
   
-  const getCategoryName = (slug: string) => categories.find(c => c.slug === slug)?.name;
+  const getCategoryName = (slug: string) => categories?.find(c => c.slug === slug)?.name;
 
   const pageTitle = useMemo(() => {
     if (searchQuery) {
@@ -110,7 +138,7 @@ export default function ProductsPage() {
         return 'Filtered Products';
     }
     return 'All Products';
-  }, [searchQuery, selectedCategories]);
+  }, [searchQuery, selectedCategories, categories]);
 
 
   return (
@@ -120,26 +148,32 @@ export default function ProductsPage() {
           <div className="space-y-8 sticky top-24">
             <div>
               <h3 className="text-lg font-semibold mb-3">Categories</h3>
-              <div className="space-y-3">
-                {categories.map((category) => (
-                  <div
-                    key={category.id}
-                    className="flex items-center space-x-2"
-                  >
-                    <Checkbox
-                      id={category.slug}
-                      checked={selectedCategories.includes(category.slug)}
-                      onCheckedChange={() => handleCategoryChange(category.slug)}
-                    />
-                    <Label
-                      htmlFor={category.slug}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+              {areCategoriesLoading ? (
+                <div className="space-y-3">
+                    {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-5 w-3/4" />)}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                    {categories?.map((category) => (
+                    <div
+                        key={category.id}
+                        className="flex items-center space-x-2"
                     >
-                      {category.name}
-                    </Label>
-                  </div>
-                ))}
-              </div>
+                        <Checkbox
+                        id={category.slug}
+                        checked={selectedCategories.includes(category.slug)}
+                        onCheckedChange={() => handleCategoryChange(category.slug)}
+                        />
+                        <Label
+                        htmlFor={category.slug}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                        >
+                        {category.name}
+                        </Label>
+                    </div>
+                    ))}
+                </div>
+              )}
             </div>
             <div>
               <h3 className="text-lg font-semibold mb-4">Price Range</h3>
@@ -177,9 +211,11 @@ export default function ProductsPage() {
               {pageTitle}
             </h1>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-muted-foreground">
-                {filteredAndSortedProducts.length} products
-              </span>
+              {!areProductsLoading && (
+                <span className="text-sm text-muted-foreground">
+                    {filteredAndSortedProducts.length} products
+                </span>
+              )}
               <Select value={sortOrder} onValueChange={setSortOrder}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Sort by" />
@@ -194,19 +230,21 @@ export default function ProductsPage() {
               </Select>
             </div>
           </div>
-          {filteredAndSortedProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredAndSortedProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16 border-2 border-dashed rounded-lg">
-              <h2 className="text-2xl font-semibold">No Products Found</h2>
-              <p className="text-muted-foreground mt-2">
-                Try adjusting your filters or searching for something else.
-              </p>
-            </div>
+          {areProductsLoading ? <ProductsPageSkeleton /> : (
+             filteredAndSortedProducts.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {filteredAndSortedProducts.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16 border-2 border-dashed rounded-lg">
+                  <h2 className="text-2xl font-semibold">No Products Found</h2>
+                  <p className="text-muted-foreground mt-2">
+                    Try adjusting your filters or searching for something else.
+                  </p>
+                </div>
+              )
           )}
         </main>
       </div>
