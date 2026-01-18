@@ -13,20 +13,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useUser } from "@/firebase";
+import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { UserNav } from "./user-nav";
 import { Skeleton } from "./ui/skeleton";
 import { useCart } from "@/context/cart-context";
 import { Badge } from "./ui/badge";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
-const navLinks = [
-  { href: "/products", label: "All Products" },
-  { href: "/products?category=organic-foods", label: "Organic Foods" },
-  { href: "/products?category=fitness-gear", label: "Fitness" },
-  { href: "/products?category=supplements", label: "Supplements" },
-];
+import { collection } from "firebase/firestore";
+import { Category } from "@/lib/types";
 
 export function Header() {
   const isMobile = useIsMobile();
@@ -34,6 +29,15 @@ export function Header() {
   const { cartCount } = useCart();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const firestore = useFirestore();
+
+  const categoriesQuery = useMemoFirebase(() => collection(firestore, 'categories'), [firestore]);
+  const { data: categories } = useCollection<Category>(categoriesQuery);
+
+  const navLinks = [
+    { href: "/products", label: "All Products" },
+    ...(categories?.map(c => ({ href: `/products?category=${c.slug}`, label: c.name })) || []),
+  ];
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

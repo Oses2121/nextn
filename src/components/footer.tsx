@@ -1,7 +1,16 @@
+'use client';
+
 import { Leaf, Twitter, Instagram, Facebook } from "lucide-react";
 import Link from "next/link";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { collection } from "firebase/firestore";
+import { Category } from "@/lib/types";
 
 export function Footer() {
+  const firestore = useFirestore();
+  const categoriesQuery = useMemoFirebase(() => collection(firestore, 'categories'), [firestore]);
+  const { data: categories } = useCollection<Category>(categoriesQuery);
+
   return (
     <footer className="bg-muted text-muted-foreground py-8 mt-16">
       <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -18,9 +27,13 @@ export function Footer() {
           <h4 className="font-semibold text-foreground mb-4">Shop</h4>
           <ul className="space-y-2 text-sm">
             <li><Link href="/products" className="hover:text-primary">All Products</Link></li>
-            <li><Link href="/products?category=organic-foods" className="hover:text-primary">Organic Foods</Link></li>
-            <li><Link href="/products?category=fitness-gear" className="hover:text-primary">Fitness Gear</Link></li>
-            <li><Link href="/products?category=supplements" className="hover:text-primary">Supplements</Link></li>
+            {categories?.map(category => (
+                <li key={category.id}>
+                    <Link href={`/products?category=${category.slug}`} className="hover:text-primary">
+                        {category.name}
+                    </Link>
+                </li>
+            ))}
           </ul>
         </div>
         <div>
